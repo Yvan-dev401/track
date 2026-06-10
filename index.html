@@ -4,49 +4,50 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Language Habit Tracker</title>
-<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
 :root {
-  --bg:      #111214;
-  --card:    #18191d;
-  --card2:   #1f2024;
-  --border:  #2c2d32;
-  --border2: #35363c;
-  --text:    #e2e4e9;
-  --muted:   #5c5f6b;
-  --muted2:  #2e2f36;
+  /* Notion Dark Mode Colors */
+  --bg:      rgb(25, 25, 25);
+  --card:    rgb(32, 32, 32);
+  --card2:   rgb(37, 37, 37);
+  --border:  rgba(255,255,255,0.094);
+  --border2: rgba(255,255,255,0.05);
+  --text:    rgba(255,255,255,0.81);
+  --muted:   rgba(255,255,255,0.44);
+  --muted2:  rgba(255,255,255,0.2);
 
-  --de:      #3b82f6;
-  --de-glow: rgba(59,130,246,0.15);
-  --en:      #a78bfa;
-  --en-glow: rgba(167,139,250,0.15);
+  /* Notion Accent Colors */
+  --de:      #529cca; /* Notion Blue */
+  --de-glow: rgba(82,156,202,0.1);
+  --en:      #9c8edb; /* Notion Purple */
+  --en-glow: rgba(156,142,219,0.1);
 
-  --ecoute:  #22d3ee;
-  --oral:    #f97316;
-  --ecrit:   #a3e635;
-  --lecture: #fb923c;
+  --ecoute:  #4dbab4; /* Notion Teal */
+  --oral:    #d97757; /* Notion Orange */
+  --ecrit:   #7dc570; /* Notion Green */
+  --lecture: #cb8a65; /* Notion Brown */
 
-  --done:    #22c55e;
-  --done-dim:rgba(34,197,94,0.13);
-  --miss-dim:rgba(239,68,68,0.09);
-  --miss:    #ef4444;
+  --done:    #7dc570;
+  --done-dim:rgba(125,197,112,0.1);
+  --miss-dim:rgba(212,74,74,0.08);
+  --miss:    #d44a4a;
 }
 
 html, body {
   background: var(--bg);
   color: var(--text);
-  font-family: 'DM Sans', sans-serif;
+  /* Notion's exact system font stack */
+  font-family: ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, "Apple Color Emoji", Arial, sans-serif, "Segoe UI Emoji", "Segoe UI Symbol";
   height: 100%;
-  overflow: hidden; /* no scroll at all */
+  overflow: hidden;
 }
 
 body {
   display: flex;
   flex-direction: column;
-  height: 100vh;
-  max-height: 350px;
+  height: 350px;
   padding: 8px 10px 8px;
   gap: 7px;
 }
@@ -60,16 +61,14 @@ body {
 }
 
 .page-date {
-  font-family: 'DM Mono', monospace;
-  font-size: 10px;
+  font-size: 11px;
   color: var(--muted);
 }
 
 .title {
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 600;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
+  letter-spacing: 0.02em;
   color: var(--muted);
 }
 
@@ -78,9 +77,9 @@ body {
   display: flex;
   background: var(--card);
   border: 1px solid var(--border);
-  border-radius: 10px;
+  border-radius: 6px; /* Notion radius */
   padding: 3px;
-  gap: 3px;
+  gap: 2px;
   flex-shrink: 0;
 }
 
@@ -89,50 +88,46 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 5px;
-  padding: 7px 6px;
-  border-radius: 7px;
-  border: none;
+  gap: 6px;
+  padding: 6px;
+  border-radius: 4px;
+  border: 1px solid transparent;
   background: transparent;
   color: var(--muted);
-  font-family: 'DM Sans', sans-serif;
+  font-family: inherit;
   font-size: 12px;
-  font-weight: 600;
+  font-weight: 500;
   cursor: pointer;
-  transition: all 0.18s;
+  transition: all 0.15s;
   white-space: nowrap;
 }
 
-.tab-btn:hover { color: var(--text); }
+.tab-btn:hover { background: rgba(255,255,255,0.04); color: var(--text); }
 
 .tab-btn.active-de {
   background: var(--de-glow);
   color: var(--de);
-  border: 1px solid rgba(59,130,246,0.22);
 }
 .tab-btn.active-en {
   background: var(--en-glow);
   color: var(--en);
-  border: 1px solid rgba(167,139,250,0.22);
 }
 .tab-btn.active-cal {
-  background: rgba(34,197,94,0.1);
+  background: rgba(125,197,112,0.08);
   color: var(--done);
-  border: 1px solid rgba(34,197,94,0.2);
 }
 
 .tab-pip {
   font-size: 10px;
-  background: var(--card2);
-  border: 1px solid var(--border2);
-  border-radius: 4px;
-  padding: 1px 4px;
-  font-family: 'DM Mono', monospace;
+  background: rgba(255,255,255,0.06);
+  border-radius: 3px;
+  padding: 1px 5px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
   color: var(--muted);
-  transition: all 0.18s;
+  transition: all 0.15s;
 }
-.tab-btn.active-de .tab-pip { background: rgba(59,130,246,0.12); border-color: rgba(59,130,246,0.3); color: var(--de); }
-.tab-btn.active-en .tab-pip { background: rgba(167,139,250,0.12); border-color: rgba(167,139,250,0.3); color: var(--en); }
+.tab-btn.active-de .tab-pip { background: rgba(82,156,202,0.15); color: var(--de); }
+.tab-btn.active-en .tab-pip { background: rgba(156,142,219,0.15); color: var(--en); }
 
 /* ── PANELS ── */
 .panel { display: none; flex-direction: column; gap: 7px; flex: 1; min-height: 0; }
@@ -145,25 +140,26 @@ body {
   justify-content: space-between;
   background: var(--card);
   border: 1px solid var(--border);
-  border-radius: 11px;
-  padding: 9px 13px;
+  border-radius: 6px;
+  padding: 10px 14px;
   flex-shrink: 0;
 }
 
-.lang-left { display: flex; align-items: center; gap: 8px; }
-.lang-flag { font-size: 20px; }
-.lang-name { font-size: 13px; font-weight: 600; color: var(--text); }
-.lang-sub  { font-size: 9px; color: var(--muted); letter-spacing: 0.04em; margin-top: 1px; }
+.lang-left { display: flex; align-items: center; gap: 10px; }
+.lang-flag { width: 20px; height: 20px; color: var(--text); display: flex; align-items: center; }
+.lang-name { font-size: 14px; font-weight: 600; color: var(--text); }
+.lang-sub  { font-size: 10px; color: var(--muted); margin-top: 1px; }
 
 /* Ring */
 .ring-wrap { position: relative; width: 42px; height: 42px; flex-shrink: 0; }
 .ring-wrap svg { transform: rotate(-90deg); }
-.ring-bg   { fill: none; stroke: var(--border2); stroke-width: 2.5; }
-.ring-fill { fill: none; stroke-width: 2.5; stroke-linecap: round; transition: stroke-dashoffset 0.45s ease; }
+.ring-bg   { fill: none; stroke: rgba(255,255,255,0.08); stroke-width: 3; }
+.ring-fill { fill: none; stroke-width: 3; stroke-linecap: round; transition: stroke-dashoffset 0.45s ease; }
 .ring-txt  {
   position: absolute; inset: 0;
   display: flex; align-items: center; justify-content: center;
-  font-family: 'DM Mono', monospace; font-size: 11px; font-weight: 500; color: var(--text);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 11px; font-weight: 500; color: var(--text);
 }
 
 /* ── SKILL BUTTONS GRID ── */
@@ -177,10 +173,10 @@ body {
 .skill-btn {
   background: var(--card);
   border: 1px solid var(--border);
-  border-radius: 11px;
+  border-radius: 6px;
   padding: 10px 8px 9px;
   cursor: pointer;
-  transition: all 0.16s;
+  transition: all 0.15s;
   text-align: center;
   display: flex;
   flex-direction: column;
@@ -189,37 +185,52 @@ body {
 }
 
 .skill-btn:hover:not(.skill-done) {
-  border-color: var(--border2);
-  transform: translateY(-1px);
+  background: rgba(255,255,255,0.04);
+  border-color: rgba(255,255,255,0.14);
 }
-.skill-btn.skill-done { cursor: default; background: var(--done-dim); border-color: rgba(34,197,94,0.22); }
+.skill-btn.skill-done { 
+  cursor: default; 
+  background: var(--done-dim); 
+  border-color: rgba(125,197,112,0.2); 
+}
 
-.skill-icon { font-size: 16px; line-height: 1; }
+.skill-icon { 
+  width: 20px; height: 20px; line-height: 1; 
+  display: flex; align-items: center; justify-content: center;
+  color: var(--muted);
+  transition: color 0.2s;
+}
 
 .skill-streak {
-  font-family: 'DM Mono', monospace;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
   font-size: 18px; font-weight: 500; line-height: 1;
   transition: color 0.2s;
 }
 
 .skill-label {
-  font-size: 9px; font-weight: 600;
-  letter-spacing: 0.05em; text-transform: uppercase;
+  font-size: 9px; font-weight: 500;
+  letter-spacing: 0.02em; text-transform: capitalize;
   color: var(--muted); line-height: 1;
 }
 
 /* Skill accent colors */
 .skill-ecoute  .skill-streak { color: var(--ecoute); }
+.skill-ecoute  .skill-icon   { color: var(--ecoute); }
 .skill-oral    .skill-streak { color: var(--oral); }
+.skill-oral    .skill-icon   { color: var(--oral); }
 .skill-ecrit   .skill-streak { color: var(--ecrit); }
+.skill-ecrit   .skill-icon   { color: var(--ecrit); }
 .skill-lecture .skill-streak { color: var(--lecture); }
-.skill-done    .skill-streak { color: var(--done) !important; }
-.skill-done    .skill-label  { color: rgba(34,197,94,0.5); }
+.skill-lecture .skill-icon   { color: var(--lecture); }
+
+.skill-done .skill-streak { color: var(--done) !important; }
+.skill-done .skill-icon   { color: var(--done) !important; }
+.skill-done .skill-label  { color: rgba(125,197,112,0.6); }
 
 /* Check dot */
 .skill-dot {
   width: 6px; height: 6px; border-radius: 50%;
-  background: var(--border2);
+  background: rgba(255,255,255,0.1);
   transition: background 0.2s;
   flex-shrink: 0;
 }
@@ -231,7 +242,7 @@ body {
   grid-template-columns: repeat(4, 1fr);
   background: var(--card);
   border: 1px solid var(--border);
-  border-radius: 11px;
+  border-radius: 6px;
   overflow: hidden;
   flex-shrink: 0;
 }
@@ -243,16 +254,16 @@ body {
 }
 .mstat:last-child { border-right: none; }
 .mstat-val {
-  font-family: 'DM Mono', monospace;
-  font-size: 15px; font-weight: 500; line-height: 1; margin-bottom: 2px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 16px; font-weight: 500; line-height: 1; margin-bottom: 2px;
 }
-.mstat-lbl { font-size: 8px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; }
+.mstat-lbl { font-size: 9px; color: var(--muted); text-transform: capitalize; letter-spacing: 0.02em; }
 
 /* ── CALENDAR PANEL ── */
 .cal-panel-inner {
   background: var(--card);
   border: 1px solid var(--border);
-  border-radius: 11px;
+  border-radius: 6px;
   padding: 8px 10px 6px;
   flex: 1;
   min-height: 0;
@@ -262,7 +273,6 @@ body {
   overflow: hidden;
 }
 
-/* Lang selector inside calendar */
 .cal-lang-tabs {
   display: flex;
   gap: 5px;
@@ -271,39 +281,40 @@ body {
 .cal-lang-btn {
   flex: 1;
   padding: 4px 6px;
-  border-radius: 6px;
+  border-radius: 4px;
   border: 1px solid var(--border);
-  background: var(--card2);
+  background: transparent;
   color: var(--muted);
-  font-family: 'DM Sans', sans-serif;
-  font-size: 10px; font-weight: 600;
+  font-family: inherit;
+  font-size: 11px; font-weight: 500;
   cursor: pointer;
   transition: all 0.15s;
-  display: flex; align-items: center; justify-content: center; gap: 4px;
+  display: flex; align-items: center; justify-content: center; gap: 5px;
 }
-.cal-lang-btn.active-de { background: var(--de-glow); color: var(--de); border-color: rgba(59,130,246,0.25); }
-.cal-lang-btn.active-en { background: var(--en-glow); color: var(--en); border-color: rgba(167,139,250,0.25); }
+.cal-lang-btn svg { width: 14px; height: 14px; }
+.cal-lang-btn.active-de { background: var(--de-glow); color: var(--de); border-color: rgba(82,156,202,0.2); }
+.cal-lang-btn.active-en { background: var(--en-glow); color: var(--en); border-color: rgba(156,142,219,0.2); }
 
 .cal-nav-row {
   display: flex; align-items: center; justify-content: space-between;
   flex-shrink: 0;
 }
-.cal-month-lbl { font-size: 11px; font-weight: 600; color: var(--text); text-transform: capitalize; }
-.cal-nav { display: flex; gap: 3px; }
+.cal-month-lbl { font-size: 12px; font-weight: 600; color: var(--text); text-transform: capitalize; }
+.cal-nav { display: flex; gap: 2px; }
 .cal-nav button {
   width: 22px; height: 22px;
-  background: var(--card2); border: 1px solid var(--border);
-  border-radius: 5px; color: var(--muted); font-size: 12px;
+  background: transparent; border: 1px solid transparent;
+  border-radius: 4px; color: var(--muted); font-size: 14px;
   cursor: pointer; transition: all 0.13s;
   display: flex; align-items: center; justify-content: center;
 }
-.cal-nav button:hover { color: var(--text); border-color: var(--border2); }
+.cal-nav button:hover { background: rgba(255,255,255,0.04); color: var(--text); }
 
 .cal-weekdays {
   display: grid; grid-template-columns: repeat(7,1fr);
   flex-shrink: 0;
 }
-.cal-wd { text-align: center; font-size: 7px; font-weight: 600; letter-spacing: 0.07em; color: var(--muted2); padding: 1px 0; }
+.cal-wd { text-align: center; font-size: 9px; font-weight: 500; color: var(--muted2); padding: 2px 0; }
 
 .cal-grid {
   display: grid; grid-template-columns: repeat(7,1fr);
@@ -313,34 +324,34 @@ body {
 }
 
 .cal-day {
-  border-radius: 4px;
+  border-radius: 3px;
   display: flex; flex-direction: column;
   align-items: center; justify-content: center;
-  font-family: 'DM Mono', monospace;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
   font-size: 8px; color: var(--muted2);
   gap: 1px;
   height: 26px;
   overflow: hidden;
 }
 
-.cal-day.is-today  { border: 1px solid var(--border2); color: var(--text); background: var(--card2); }
-.cal-day.is-future { color: #22232a; }
-.cal-day.day-full    { background: rgba(34,197,94,0.13); }
-.cal-day.day-partial { background: rgba(251,191,36,0.09); }
+.cal-day.is-today  { border: 1px solid rgba(255,255,255,0.14); color: var(--text); background: rgba(255,255,255,0.04); }
+.cal-day.is-future { color: rgba(255,255,255,0.1); }
+.cal-day.day-full    { background: rgba(125,197,112,0.12); }
+.cal-day.day-partial { background: rgba(255,255,255,0.04); }
 .cal-day.day-miss    { background: var(--miss-dim); }
-.cal-day.day-miss .dnum { color: var(--miss); opacity: 0.4; }
+.cal-day.day-miss .dnum { color: var(--miss); opacity: 0.6; }
 
 .dnum { font-size: 9px; line-height: 1; }
 .ddots { display: flex; gap: 1px; flex-wrap: wrap; justify-content: center; max-width: 16px; }
 .ddot  { width: 3px; height: 3px; border-radius: 50%; }
 
 .cal-legend {
-  display: flex; gap: 7px; flex-wrap: wrap;
+  display: flex; gap: 8px; flex-wrap: wrap;
   flex-shrink: 0;
   padding-top: 5px;
   border-top: 1px solid var(--border);
 }
-.leg-item { display: flex; align-items: center; gap: 3px; font-size: 8px; color: var(--muted); }
+.leg-item { display: flex; align-items: center; gap: 4px; font-size: 9px; color: var(--muted); }
 .leg-dot  { width: 6px; height: 6px; border-radius: 50%; }
 
 /* ── CONFETTI ── */
@@ -378,17 +389,28 @@ body {
 <div id="panels" style="display:contents"></div>
 
 <script>
+// ── NOTION STYLE ICONS (SVG) ────────────────────────────
+const ICONS = {
+  globeDE: `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></svg>`,
+  globeEN: `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></svg>`,
+  headphones: `<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 18v-6a9 9 0 0 1 18 0v6"></path><path d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3zM3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z"></path></svg>`,
+  mic: `<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path><path d="M19 10v2a7 7 0 0 1-14 0v-2"></path><line x1="12" y1="19" x2="12" y2="23"></line><line x1="8" y1="23" x2="16" y2="23"></line></svg>`,
+  pen: `<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>`,
+  book: `<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>`,
+  calendar: `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: -2px;"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>`
+};
+
 // ── CONFIG ──────────────────────────────────────────────
 const LANGS = [
-  { id:'de', flag:'🇩🇪', name:'Allemand', sub:'Deutsch · B1 Target', color:'#3b82f6' },
-  { id:'en', flag:'🇬🇧', name:'Anglais',  sub:'English · Maintien',  color:'#a78bfa' }
+  { id:'de', flag: ICONS.globeDE, name:'Allemand', sub:'Deutsch · B1 Target', color:'#529cca' },
+  { id:'en', flag: ICONS.globeEN, name:'Anglais',  sub:'English · Maintien',  color:'#9c8edb' }
 ];
 
 const SKILLS = [
-  { id:'ecoute',  label:'Écoute',  icon:'🎧', color:'#22d3ee' },
-  { id:'oral',    label:'Oral',    icon:'🎙️', color:'#f97316' },
-  { id:'ecrit',   label:'Écrit',   icon:'✍️',  color:'#a3e635' },
-  { id:'lecture', label:'Lecture', icon:'📖', color:'#fb923c' }
+  { id:'ecoute',  label:'Écoute',  icon: ICONS.headphones, color:'#4dbab4' },
+  { id:'oral',    label:'Oral',    icon: ICONS.mic,        color:'#d97757' },
+  { id:'ecrit',   label:'Écrit',   icon: ICONS.pen,        color:'#7dc570' },
+  { id:'lecture', label:'Lecture', icon: ICONS.book,       color:'#cb8a65' }
 ];
 
 const KEY = 'langHabit_v4';
@@ -554,6 +576,11 @@ function buildPanels() {
     </div>
   `;
   container.appendChild(calPanel);
+
+  // Update Main Tabs with SVGs
+  document.getElementById('tab-de').innerHTML = `${ICONS.globeDE} DE <span class="tab-pip" id="pip-de">0/4</span>`;
+  document.getElementById('tab-en').innerHTML = `${ICONS.globeEN} EN <span class="tab-pip" id="pip-en">0/4</span>`;
+  document.getElementById('tab-cal').innerHTML = `${ICONS.calendar} Calendrier`;
 }
 
 // ── RENDER ALL ──────────────────────────────────────────
@@ -680,10 +707,10 @@ function launchConfetti(accent) {
   const canvas=document.getElementById('confettiCanvas');
   const ctx=canvas.getContext('2d');
   canvas.width=window.innerWidth; canvas.height=window.innerHeight;
-  const pal=[accent,'#ffffff','#22c55e','#f9e74e','#ff6b6b'];
-  const pts=Array.from({length:80},()=>({
+  const pal=[accent,'#ffffff','#7dc570','#f9e74e','#d44a4a'];
+  const pts=Array.from({length:60},()=>({
     x:Math.random()*canvas.width, y:-10-Math.random()*60,
-    r:3+Math.random()*5, d:Math.random()*60+20,
+    r:3+Math.random()*4, d:Math.random()*60+20,
     color:pal[Math.floor(Math.random()*pal.length)],
     ta:Math.random()*Math.PI*2, ts:0.04+Math.random()*0.08,
     sp:1.5+Math.random()*2, op:1
