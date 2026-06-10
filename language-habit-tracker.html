@@ -1,0 +1,714 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Language Habit Tracker</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg:      #111214;
+  --card:    #18191d;
+  --card2:   #1f2024;
+  --border:  #2c2d32;
+  --border2: #35363c;
+  --text:    #e2e4e9;
+  --muted:   #5c5f6b;
+  --muted2:  #2e2f36;
+
+  --de:      #3b82f6;
+  --de-glow: rgba(59,130,246,0.15);
+  --en:      #a78bfa;
+  --en-glow: rgba(167,139,250,0.15);
+
+  --ecoute:  #22d3ee;
+  --oral:    #f97316;
+  --ecrit:   #a3e635;
+  --lecture: #fb923c;
+
+  --done:    #22c55e;
+  --done-dim:rgba(34,197,94,0.13);
+  --miss-dim:rgba(239,68,68,0.09);
+  --miss:    #ef4444;
+}
+
+html, body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'DM Sans', sans-serif;
+  height: 100%;
+  overflow: hidden; /* no scroll at all */
+}
+
+body {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  max-height: 350px;
+  padding: 8px 10px 8px;
+  gap: 7px;
+}
+
+/* ── TOP BAR ── */
+.top-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-shrink: 0;
+}
+
+.page-date {
+  font-family: 'DM Mono', monospace;
+  font-size: 10px;
+  color: var(--muted);
+}
+
+.title {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+/* ── TABS ── */
+.tabs {
+  display: flex;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 3px;
+  gap: 3px;
+  flex-shrink: 0;
+}
+
+.tab-btn {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  padding: 7px 6px;
+  border-radius: 7px;
+  border: none;
+  background: transparent;
+  color: var(--muted);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.18s;
+  white-space: nowrap;
+}
+
+.tab-btn:hover { color: var(--text); }
+
+.tab-btn.active-de {
+  background: var(--de-glow);
+  color: var(--de);
+  border: 1px solid rgba(59,130,246,0.22);
+}
+.tab-btn.active-en {
+  background: var(--en-glow);
+  color: var(--en);
+  border: 1px solid rgba(167,139,250,0.22);
+}
+.tab-btn.active-cal {
+  background: rgba(34,197,94,0.1);
+  color: var(--done);
+  border: 1px solid rgba(34,197,94,0.2);
+}
+
+.tab-pip {
+  font-size: 10px;
+  background: var(--card2);
+  border: 1px solid var(--border2);
+  border-radius: 4px;
+  padding: 1px 4px;
+  font-family: 'DM Mono', monospace;
+  color: var(--muted);
+  transition: all 0.18s;
+}
+.tab-btn.active-de .tab-pip { background: rgba(59,130,246,0.12); border-color: rgba(59,130,246,0.3); color: var(--de); }
+.tab-btn.active-en .tab-pip { background: rgba(167,139,250,0.12); border-color: rgba(167,139,250,0.3); color: var(--en); }
+
+/* ── PANELS ── */
+.panel { display: none; flex-direction: column; gap: 7px; flex: 1; min-height: 0; }
+.panel.visible { display: flex; }
+
+/* ── LANG PANEL HEADER ── */
+.lang-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 11px;
+  padding: 9px 13px;
+  flex-shrink: 0;
+}
+
+.lang-left { display: flex; align-items: center; gap: 8px; }
+.lang-flag { font-size: 20px; }
+.lang-name { font-size: 13px; font-weight: 600; color: var(--text); }
+.lang-sub  { font-size: 9px; color: var(--muted); letter-spacing: 0.04em; margin-top: 1px; }
+
+/* Ring */
+.ring-wrap { position: relative; width: 42px; height: 42px; flex-shrink: 0; }
+.ring-wrap svg { transform: rotate(-90deg); }
+.ring-bg   { fill: none; stroke: var(--border2); stroke-width: 2.5; }
+.ring-fill { fill: none; stroke-width: 2.5; stroke-linecap: round; transition: stroke-dashoffset 0.45s ease; }
+.ring-txt  {
+  position: absolute; inset: 0;
+  display: flex; align-items: center; justify-content: center;
+  font-family: 'DM Mono', monospace; font-size: 11px; font-weight: 500; color: var(--text);
+}
+
+/* ── SKILL BUTTONS GRID ── */
+.skills-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.skill-btn {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 11px;
+  padding: 10px 8px 9px;
+  cursor: pointer;
+  transition: all 0.16s;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+}
+
+.skill-btn:hover:not(.skill-done) {
+  border-color: var(--border2);
+  transform: translateY(-1px);
+}
+.skill-btn.skill-done { cursor: default; background: var(--done-dim); border-color: rgba(34,197,94,0.22); }
+
+.skill-icon { font-size: 16px; line-height: 1; }
+
+.skill-streak {
+  font-family: 'DM Mono', monospace;
+  font-size: 18px; font-weight: 500; line-height: 1;
+  transition: color 0.2s;
+}
+
+.skill-label {
+  font-size: 9px; font-weight: 600;
+  letter-spacing: 0.05em; text-transform: uppercase;
+  color: var(--muted); line-height: 1;
+}
+
+/* Skill accent colors */
+.skill-ecoute  .skill-streak { color: var(--ecoute); }
+.skill-oral    .skill-streak { color: var(--oral); }
+.skill-ecrit   .skill-streak { color: var(--ecrit); }
+.skill-lecture .skill-streak { color: var(--lecture); }
+.skill-done    .skill-streak { color: var(--done) !important; }
+.skill-done    .skill-label  { color: rgba(34,197,94,0.5); }
+
+/* Check dot */
+.skill-dot {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: var(--border2);
+  transition: background 0.2s;
+  flex-shrink: 0;
+}
+.skill-done .skill-dot { background: var(--done); }
+
+/* ── MONTHLY STATS ── */
+.month-stats {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 11px;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.mstat {
+  padding: 7px 4px;
+  text-align: center;
+  border-right: 1px solid var(--border);
+}
+.mstat:last-child { border-right: none; }
+.mstat-val {
+  font-family: 'DM Mono', monospace;
+  font-size: 15px; font-weight: 500; line-height: 1; margin-bottom: 2px;
+}
+.mstat-lbl { font-size: 8px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; }
+
+/* ── CALENDAR PANEL ── */
+.cal-panel-inner {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 11px;
+  padding: 8px 10px 6px;
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  overflow: hidden;
+}
+
+/* Lang selector inside calendar */
+.cal-lang-tabs {
+  display: flex;
+  gap: 5px;
+  flex-shrink: 0;
+}
+.cal-lang-btn {
+  flex: 1;
+  padding: 4px 6px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: var(--card2);
+  color: var(--muted);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 10px; font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s;
+  display: flex; align-items: center; justify-content: center; gap: 4px;
+}
+.cal-lang-btn.active-de { background: var(--de-glow); color: var(--de); border-color: rgba(59,130,246,0.25); }
+.cal-lang-btn.active-en { background: var(--en-glow); color: var(--en); border-color: rgba(167,139,250,0.25); }
+
+.cal-nav-row {
+  display: flex; align-items: center; justify-content: space-between;
+  flex-shrink: 0;
+}
+.cal-month-lbl { font-size: 11px; font-weight: 600; color: var(--text); text-transform: capitalize; }
+.cal-nav { display: flex; gap: 3px; }
+.cal-nav button {
+  width: 22px; height: 22px;
+  background: var(--card2); border: 1px solid var(--border);
+  border-radius: 5px; color: var(--muted); font-size: 12px;
+  cursor: pointer; transition: all 0.13s;
+  display: flex; align-items: center; justify-content: center;
+}
+.cal-nav button:hover { color: var(--text); border-color: var(--border2); }
+
+.cal-weekdays {
+  display: grid; grid-template-columns: repeat(7,1fr);
+  flex-shrink: 0;
+}
+.cal-wd { text-align: center; font-size: 7px; font-weight: 600; letter-spacing: 0.07em; color: var(--muted2); padding: 1px 0; }
+
+.cal-grid {
+  display: grid; grid-template-columns: repeat(7,1fr);
+  grid-auto-rows: 26px;
+  gap: 2px;
+  flex-shrink: 0;
+}
+
+.cal-day {
+  border-radius: 4px;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  font-family: 'DM Mono', monospace;
+  font-size: 8px; color: var(--muted2);
+  gap: 1px;
+  height: 26px;
+  overflow: hidden;
+}
+
+.cal-day.is-today  { border: 1px solid var(--border2); color: var(--text); background: var(--card2); }
+.cal-day.is-future { color: #22232a; }
+.cal-day.day-full    { background: rgba(34,197,94,0.13); }
+.cal-day.day-partial { background: rgba(251,191,36,0.09); }
+.cal-day.day-miss    { background: var(--miss-dim); }
+.cal-day.day-miss .dnum { color: var(--miss); opacity: 0.4; }
+
+.dnum { font-size: 9px; line-height: 1; }
+.ddots { display: flex; gap: 1px; flex-wrap: wrap; justify-content: center; max-width: 16px; }
+.ddot  { width: 3px; height: 3px; border-radius: 50%; }
+
+.cal-legend {
+  display: flex; gap: 7px; flex-wrap: wrap;
+  flex-shrink: 0;
+  padding-top: 5px;
+  border-top: 1px solid var(--border);
+}
+.leg-item { display: flex; align-items: center; gap: 3px; font-size: 8px; color: var(--muted); }
+.leg-dot  { width: 6px; height: 6px; border-radius: 50%; }
+
+/* ── CONFETTI ── */
+#confettiCanvas {
+  position: fixed; inset: 0;
+  pointer-events: none; z-index: 9999;
+  width: 100%; height: 100%;
+}
+</style>
+</head>
+<body>
+
+<canvas id="confettiCanvas"></canvas>
+
+<!-- Top bar -->
+<div class="top-bar">
+  <div class="title">Language Tracker</div>
+  <div class="page-date" id="pageDate"></div>
+</div>
+
+<!-- Tabs -->
+<div class="tabs">
+  <button class="tab-btn active-de" id="tab-de" onclick="switchTab('de')">
+    🇩🇪 DE <span class="tab-pip" id="pip-de">0/4</span>
+  </button>
+  <button class="tab-btn" id="tab-en" onclick="switchTab('en')">
+    🇬🇧 EN <span class="tab-pip" id="pip-en">0/4</span>
+  </button>
+  <button class="tab-btn" id="tab-cal" onclick="switchTab('cal')">
+    📅 Calendrier
+  </button>
+</div>
+
+<!-- Panels container -->
+<div id="panels" style="display:contents"></div>
+
+<script>
+// ── CONFIG ──────────────────────────────────────────────
+const LANGS = [
+  { id:'de', flag:'🇩🇪', name:'Allemand', sub:'Deutsch · B1 Target', color:'#3b82f6' },
+  { id:'en', flag:'🇬🇧', name:'Anglais',  sub:'English · Maintien',  color:'#a78bfa' }
+];
+
+const SKILLS = [
+  { id:'ecoute',  label:'Écoute',  icon:'🎧', color:'#22d3ee' },
+  { id:'oral',    label:'Oral',    icon:'🎙️', color:'#f97316' },
+  { id:'ecrit',   label:'Écrit',   icon:'✍️',  color:'#a3e635' },
+  { id:'lecture', label:'Lecture', icon:'📖', color:'#fb923c' }
+];
+
+const KEY = 'langHabit_v4';
+
+// ── STATE ───────────────────────────────────────────────
+function mkState() {
+  const c={}, b={};
+  LANGS.forEach(l=>{ c[l.id]={}; b[l.id]={};
+    SKILLS.forEach(s=>{ c[l.id][s.id]={}; b[l.id][s.id]=0; }); });
+  return {checkins:c, best:b};
+}
+
+function loadState() {
+  try { return JSON.parse(localStorage.getItem(KEY)) || mkState(); }
+  catch { return mkState(); }
+}
+
+let state = loadState();
+let activeTab = 'de';
+let calLang = 'de';
+const calMonth = {};
+LANGS.forEach(l => { calMonth[l.id] = new Date(); });
+
+// ── UTILS ───────────────────────────────────────────────
+function toKey(d) {
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+}
+const todayKey = () => toKey(new Date());
+
+function streak(lid, sid) {
+  const map = state.checkins[lid][sid];
+  const today = new Date();
+  let s = 0;
+  const start = map[toKey(today)] ? today : new Date(today - 86400000);
+  for (let i=0; i<3650; i++) {
+    const d = new Date(start - i*86400000);
+    if (map[toKey(d)]) s++; else break;
+  }
+  return s;
+}
+
+function doneToday(lid) {
+  const k = todayKey();
+  return SKILLS.filter(s => state.checkins[lid][s.id][k]).length;
+}
+
+function save() { localStorage.setItem(KEY, JSON.stringify(state)); }
+
+// ── SWITCH TAB ──────────────────────────────────────────
+function switchTab(id) {
+  activeTab = id;
+  ['de','en','cal'].forEach(t => {
+    const tab = document.getElementById(`tab-${t}`);
+    const panel = document.getElementById(`panel-${t}`);
+    const isActive = t === id;
+    if (panel) panel.classList.toggle('visible', isActive);
+    tab.className = isActive ? `tab-btn active-${t}` : 'tab-btn';
+  });
+}
+
+// ── CHECK-IN ────────────────────────────────────────────
+function checkIn(lid, sid) {
+  const k = todayKey();
+  if (state.checkins[lid][sid][k]) return;
+  state.checkins[lid][sid][k] = Date.now();
+  const s = streak(lid, sid);
+  if (s > (state.best[lid][sid]||0)) state.best[lid][sid] = s;
+  save();
+  renderAll();
+  launchConfetti(SKILLS.find(x=>x.id===sid).color);
+}
+
+// ── BUILD PANELS ────────────────────────────────────────
+function buildPanels() {
+  const container = document.getElementById('panels');
+
+  // Lang panels
+  LANGS.forEach(lang => {
+    const panel = document.createElement('div');
+    panel.className = 'panel' + (lang.id==='de' ? ' visible' : '');
+    panel.id = `panel-${lang.id}`;
+
+    panel.innerHTML = `
+      <!-- Header -->
+      <div class="lang-header">
+        <div class="lang-left">
+          <div class="lang-flag">${lang.flag}</div>
+          <div>
+            <div class="lang-name">${lang.name}</div>
+            <div class="lang-sub">${lang.sub}</div>
+          </div>
+        </div>
+        <div class="ring-wrap">
+          <svg width="42" height="42" viewBox="0 0 42 42">
+            <circle class="ring-bg" cx="21" cy="21" r="17"/>
+            <circle class="ring-fill" id="ring-${lang.id}" cx="21" cy="21" r="17"
+              stroke="${lang.color}" stroke-dasharray="106.8" stroke-dashoffset="106.8"/>
+          </svg>
+          <div class="ring-txt" id="ring-txt-${lang.id}">0/4</div>
+        </div>
+      </div>
+
+      <!-- Skill buttons -->
+      <div class="skills-grid">
+        ${SKILLS.map(s=>`
+          <div class="skill-btn skill-${s.id}" id="btn-${lang.id}-${s.id}"
+               onclick="checkIn('${lang.id}','${s.id}')">
+            <div class="skill-dot" id="dot-${lang.id}-${s.id}"></div>
+            <div class="skill-icon">${s.icon}</div>
+            <div class="skill-streak" id="str-${lang.id}-${s.id}">0</div>
+            <div class="skill-label">${s.label}</div>
+          </div>
+        `).join('')}
+      </div>
+
+      <!-- Monthly stats -->
+      <div class="month-stats">
+        ${SKILLS.map(s=>`
+          <div class="mstat">
+            <div class="mstat-val" id="mv-${lang.id}-${s.id}" style="color:${s.color}">0</div>
+            <div class="mstat-lbl">${s.label.slice(0,3)}</div>
+          </div>
+        `).join('')}
+      </div>
+    `;
+    container.appendChild(panel);
+  });
+
+  // Calendar panel
+  const calPanel = document.createElement('div');
+  calPanel.className = 'panel';
+  calPanel.id = 'panel-cal';
+  calPanel.innerHTML = `
+    <div class="cal-panel-inner">
+      <div class="cal-lang-tabs">
+        ${LANGS.map(l=>`
+          <button class="cal-lang-btn ${l.id==='de'?'active-de':''}" id="callang-${l.id}"
+                  onclick="switchCalLang('${l.id}')">
+            ${l.flag} ${l.name}
+          </button>
+        `).join('')}
+      </div>
+      <div class="cal-nav-row">
+        <div class="cal-month-lbl" id="cal-lbl"></div>
+        <div class="cal-nav">
+          <button onclick="changeMonth(-1)">‹</button>
+          <button onclick="changeMonth(1)">›</button>
+        </div>
+      </div>
+      <div class="cal-weekdays">
+        ${['L','M','M','J','V','S','D'].map(d=>`<div class="cal-wd">${d}</div>`).join('')}
+      </div>
+      <div class="cal-grid" id="cal-grid"></div>
+      <div class="cal-legend">
+        ${SKILLS.map(s=>`
+          <div class="leg-item">
+            <div class="leg-dot" style="background:${s.color}"></div>${s.label}
+          </div>`).join('')}
+        <div class="leg-item">
+          <div class="leg-dot" style="background:var(--miss);opacity:0.45"></div>Manqué
+        </div>
+      </div>
+    </div>
+  `;
+  container.appendChild(calPanel);
+}
+
+// ── RENDER ALL ──────────────────────────────────────────
+function renderAll() {
+  document.getElementById('pageDate').textContent =
+    new Date().toLocaleDateString('fr-FR',{weekday:'short',day:'numeric',month:'short'});
+
+  const todayK = todayKey();
+  const today  = new Date();
+
+  LANGS.forEach(lang => {
+    const done = doneToday(lang.id);
+
+    // Tab pip
+    document.getElementById(`pip-${lang.id}`).textContent = `${done}/4`;
+
+    // Ring
+    const circ = 2 * Math.PI * 17;
+    document.getElementById(`ring-${lang.id}`).style.strokeDashoffset = circ*(1-done/4);
+    document.getElementById(`ring-txt-${lang.id}`).textContent = `${done}/4`;
+
+    // Skills
+    SKILLS.forEach(s => {
+      const isDone = !!state.checkins[lang.id][s.id][todayK];
+      const str    = streak(lang.id, s.id);
+      const btn    = document.getElementById(`btn-${lang.id}-${s.id}`);
+
+      btn.classList.toggle('skill-done', isDone);
+      document.getElementById(`str-${lang.id}-${s.id}`).textContent = str;
+
+      // Monthly count
+      const vm = calMonth[lang.id];
+      const y=vm.getFullYear(), m=vm.getMonth();
+      const isCur = today.getFullYear()===y && today.getMonth()===m;
+      const last  = isCur ? today.getDate() : new Date(y,m+1,0).getDate();
+      let total=0;
+      for(let d=1;d<=last;d++){
+        const k=`${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+        if(state.checkins[lang.id][s.id][k]) total++;
+      }
+      document.getElementById(`mv-${lang.id}-${s.id}`).textContent = total;
+    });
+  });
+
+  renderCalendar();
+}
+
+// ── CALENDAR ────────────────────────────────────────────
+function switchCalLang(lid) {
+  calLang = lid;
+  LANGS.forEach(l => {
+    document.getElementById(`callang-${l.id}`).className =
+      `cal-lang-btn${l.id===lid ? ' active-'+lid : ''}`;
+  });
+  renderCalendar();
+}
+
+function changeMonth(dir) {
+  const vm = calMonth[calLang];
+  calMonth[calLang] = new Date(vm.getFullYear(), vm.getMonth()+dir, 1);
+  renderAll();
+}
+
+function renderCalendar() {
+  const today = new Date();
+  const vm = calMonth[calLang];
+  const y=vm.getFullYear(), m=vm.getMonth();
+
+  const lbl = document.getElementById('cal-lbl');
+  if (!lbl) return;
+  lbl.textContent = new Date(y,m).toLocaleDateString('fr-FR',{month:'long',year:'numeric'});
+
+  const firstDow = new Date(y,m,1).getDay();
+  const offset   = firstDow===0 ? 6 : firstDow-1;
+  const days     = new Date(y,m+1,0).getDate();
+  const isCur    = today.getFullYear()===y && today.getMonth()===m;
+
+  const grid = document.getElementById('cal-grid');
+  if (!grid) return;
+  grid.innerHTML = '';
+
+  for(let i=0;i<offset;i++){
+    const el=document.createElement('div'); el.className='cal-day'; grid.appendChild(el);
+  }
+
+  for(let d=1;d<=days;d++){
+    const el = document.createElement('div'); el.className='cal-day';
+    const date = new Date(y,m,d);
+    const key  = toKey(date);
+    const isToday  = isCur && today.getDate()===d;
+    const isFuture = date>today && !isToday;
+
+    if(isToday)  el.classList.add('is-today');
+    if(isFuture) el.classList.add('is-future');
+
+    const mask  = SKILLS.map(s=>!!state.checkins[calLang][s.id][key]);
+    const count = mask.filter(Boolean).length;
+
+    if(!isFuture){
+      if(count===4)     el.classList.add('day-full');
+      else if(count>0)  el.classList.add('day-partial');
+      else if(!isToday) el.classList.add('day-miss');
+    }
+
+    const num=document.createElement('div'); num.className='dnum'; num.textContent=d; el.appendChild(num);
+
+    if(!isFuture && count>0){
+      const dots=document.createElement('div'); dots.className='ddots';
+      SKILLS.forEach((s,i)=>{
+        if(mask[i]){
+          const dot=document.createElement('div'); dot.className='ddot';
+          dot.style.background=s.color; dots.appendChild(dot);
+        }
+      });
+      el.appendChild(dots);
+    }
+    grid.appendChild(el);
+  }
+}
+
+// ── CONFETTI ────────────────────────────────────────────
+let confAnim=null;
+function launchConfetti(accent) {
+  const canvas=document.getElementById('confettiCanvas');
+  const ctx=canvas.getContext('2d');
+  canvas.width=window.innerWidth; canvas.height=window.innerHeight;
+  const pal=[accent,'#ffffff','#22c55e','#f9e74e','#ff6b6b'];
+  const pts=Array.from({length:80},()=>({
+    x:Math.random()*canvas.width, y:-10-Math.random()*60,
+    r:3+Math.random()*5, d:Math.random()*60+20,
+    color:pal[Math.floor(Math.random()*pal.length)],
+    ta:Math.random()*Math.PI*2, ts:0.04+Math.random()*0.08,
+    sp:1.5+Math.random()*2, op:1
+  }));
+  if(confAnim) cancelAnimationFrame(confAnim);
+  let f=0;
+  function draw(){
+    ctx.clearRect(0,0,canvas.width,canvas.height); f++;
+    let alive=0;
+    pts.forEach(p=>{
+      if(p.op<=0) return; alive++;
+      p.ta+=p.ts; p.y+=p.sp; p.x+=Math.sin(f*0.015+p.d)*0.9;
+      if(p.y>canvas.height*0.65) p.op-=0.02;
+      ctx.save(); ctx.globalAlpha=Math.max(0,p.op); ctx.fillStyle=p.color;
+      ctx.beginPath(); ctx.ellipse(p.x,p.y,p.r,p.r*0.45,p.ta,0,Math.PI*2); ctx.fill(); ctx.restore();
+    });
+    if(alive>0) confAnim=requestAnimationFrame(draw);
+    else ctx.clearRect(0,0,canvas.width,canvas.height);
+  }
+  draw();
+}
+
+// ── INIT ────────────────────────────────────────────────
+buildPanels();
+renderAll();
+</script>
+</body>
+</html>
