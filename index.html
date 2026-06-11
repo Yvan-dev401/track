@@ -35,6 +35,20 @@
   --miss:    #d44a4a;
 }
 
+/* ── LIGHT MODE ── */
+html.light {
+  --bg:      rgb(247, 247, 245);
+  --card:    rgb(255, 255, 255);
+  --card2:   rgb(241, 241, 239);
+  --border:  rgba(0,0,0,0.09);
+  --border2: rgba(0,0,0,0.05);
+  --text:    rgba(0,0,0,0.82);
+  --muted:   rgba(0,0,0,0.44);
+  --muted2:  rgba(0,0,0,0.22);
+  --done-dim:rgba(125,197,112,0.13);
+  --miss-dim:rgba(212,74,74,0.07);
+}
+
 html, body {
   background: var(--bg);
   color: var(--text);
@@ -51,6 +65,23 @@ body {
   padding: 8px 10px 8px;
   gap: 7px;
 }
+
+/* ── THEME TOGGLE ── */
+.theme-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px; height: 28px;
+  border-radius: 5px;
+  border: 1px solid var(--border);
+  background: var(--card);
+  color: var(--muted);
+  cursor: pointer;
+  transition: all 0.15s;
+  flex-shrink: 0;
+}
+.theme-toggle:hover { background: var(--card2); color: var(--text); }
+.theme-toggle svg { display: block; }
 
 /* ── TOP BAR ── */
 .top-bar {
@@ -383,6 +414,11 @@ body {
   <button class="tab-btn" id="tab-cal" onclick="switchTab('cal')">
     📅 Calendrier
   </button>
+  <button class="theme-toggle" id="themeToggle" onclick="toggleTheme()" title="Changer de thème">
+    <svg id="themeIcon" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+    </svg>
+  </button>
 </div>
 
 <!-- Panels container -->
@@ -424,8 +460,25 @@ function mkState() {
 }
 
 function loadState() {
-  try { return JSON.parse(localStorage.getItem(KEY)) || mkState(); }
-  catch { return mkState(); }
+  const fresh = mkState();
+  try {
+    const saved = JSON.parse(localStorage.getItem(KEY));
+    if (!saved) return fresh;
+    // Merge saved checkins into fresh structure (preserves all dates)
+    LANGS.forEach(l => {
+      SKILLS.forEach(s => {
+        if (saved.checkins?.[l.id]?.[s.id]) {
+          fresh.checkins[l.id][s.id] = saved.checkins[l.id][s.id];
+        }
+        if (saved.best?.[l.id]?.[s.id] != null) {
+          fresh.best[l.id][s.id] = saved.best[l.id][s.id];
+        }
+      });
+    });
+    return fresh;
+  } catch {
+    return fresh;
+  }
 }
 
 let state = loadState();
@@ -733,8 +786,29 @@ function launchConfetti(accent) {
   draw();
 }
 
+// ── THEME ────────────────────────────────────────────────
+const MOON_SVG = `<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>`;
+const SUN_SVG  = `<circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>`;
+
+let isDark = localStorage.getItem('langHabit_theme') !== 'light';
+
+function applyTheme() {
+  document.documentElement.classList.toggle('light', !isDark);
+  const icon = document.getElementById('themeIcon');
+  if (icon) icon.innerHTML = isDark ? MOON_SVG : SUN_SVG;
+}
+
+function toggleTheme() {
+  isDark = !isDark;
+  localStorage.setItem('langHabit_theme', isDark ? 'dark' : 'light');
+  applyTheme();
+}
+
+applyTheme();
+
 // ── INIT ────────────────────────────────────────────────
 buildPanels();
+applyTheme(); // re-apply after buildPanels to ensure icon is set
 renderAll();
 </script>
 </body>
