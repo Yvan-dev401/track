@@ -385,6 +385,17 @@ body {
 .leg-item { display: flex; align-items: center; gap: 4px; font-size: 9px; color: var(--muted); }
 .leg-dot  { width: 6px; height: 6px; border-radius: 50%; }
 
+/* ── SYNC INDICATOR ── */
+.sync-dot {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: var(--muted2);
+  transition: background 0.3s;
+  flex-shrink: 0;
+}
+.sync-dot.syncing  { background: #d97757; }
+.sync-dot.synced   { background: var(--done); }
+.sync-dot.error    { background: var(--miss); }
+
 /* ── CONFETTI ── */
 #confettiCanvas {
   position: fixed; inset: 0;
@@ -400,7 +411,10 @@ body {
 <!-- Top bar -->
 <div class="top-bar">
   <div class="title">Language Tracker</div>
-  <div class="page-date" id="pageDate"></div>
+  <div style="display:flex;align-items:center;gap:6px">
+    <div class="sync-dot" id="syncDot" title="Statut sync"></div>
+    <div class="page-date" id="pageDate"></div>
+  </div>
 </div>
 
 <!-- Tabs -->
@@ -449,7 +463,11 @@ const SKILLS = [
   { id:'lecture', label:'Lecture', icon: ICONS.book,       color:'#cb8a65' }
 ];
 
-const KEY = 'langHabit_v4';
+const KEY      = 'langHabit_v4';
+const BIN_ID   = '6a2a88fcda38895dfeac77cb';
+const BIN_KEY  = '$2a$10$/am75uxEFg6LIVqUsLHC0.biJYTlejahyiC6X33W/owu/HsfBklu6';
+const BIN_URL  = `https://api.jsonbin.io/v3/b/${BIN_ID}`;
+const HEADERS  = { 'Content-Type': 'application/json', 'X-Master-Key': BIN_KEY };
 
 // ── STATE ───────────────────────────────────────────────
 function mkState() {
@@ -459,29 +477,83 @@ function mkState() {
   return {checkins:c, best:b};
 }
 
-function loadState() {
+function mergeState(saved) {
   const fresh = mkState();
-  try {
-    const saved = JSON.parse(localStorage.getItem(KEY));
-    if (!saved) return fresh;
-    // Merge saved checkins into fresh structure (preserves all dates)
-    LANGS.forEach(l => {
-      SKILLS.forEach(s => {
-        if (saved.checkins?.[l.id]?.[s.id]) {
-          fresh.checkins[l.id][s.id] = saved.checkins[l.id][s.id];
-        }
-        if (saved.best?.[l.id]?.[s.id] != null) {
-          fresh.best[l.id][s.id] = saved.best[l.id][s.id];
-        }
-      });
+  if (!saved || typeof saved !== 'object') return fresh;
+  LANGS.forEach(l => {
+    SKILLS.forEach(s => {
+      const ci = saved.checkins && saved.checkins[l.id] && saved.checkins[l.id][s.id];
+      if (ci && typeof ci === 'object') fresh.checkins[l.id][s.id] = ci;
+      const bst = saved.best && saved.best[l.id] && saved.best[l.id][s.id];
+      if (typeof bst === 'number') fresh.best[l.id][s.id] = bst;
     });
-    return fresh;
-  } catch {
-    return fresh;
+  });
+  return fresh;
+}
+
+// ── SYNC STATUS ─────────────────────────────────────────
+function setSyncStatus(status) {
+  // status: 'syncing' | 'synced' | 'error' | 'idle'
+  const dot = document.getElementById('syncDot');
+  if (!dot) return;
+  dot.className = 'sync-dot' + (status !== 'idle' ? ' ' + status : '');
+  if (status === 'synced') setTimeout(() => setSyncStatus('idle'), 2000);
+}
+
+// ── LOCAL CACHE (fallback) ───────────────────────────────
+function saveLocal(s) {
+  try { localStorage.setItem(KEY, JSON.stringify(s)); } catch(e) {}
+}
+function loadLocal() {
+  try {
+    const raw = localStorage.getItem(KEY);
+    if (!raw) return null;
+    return JSON.parse(raw);
+  } catch(e) { return null; }
+}
+
+// ── JSONBIN LOAD ─────────────────────────────────────────
+async function loadFromBin() {
+  setSyncStatus('syncing');
+  try {
+    const res = await fetch(BIN_URL + '/latest', { headers: { 'X-Master-Key': BIN_KEY } });
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const json = await res.json();
+    const loaded = mergeState(json.record);
+    saveLocal(loaded); // update local cache
+    setSyncStatus('synced');
+    return loaded;
+  } catch(e) {
+    console.warn('[LangTracker] bin load failed, using local cache:', e.message);
+    setSyncStatus('error');
+    return mergeState(loadLocal());
   }
 }
 
-let state = loadState();
+// ── JSONBIN SAVE ─────────────────────────────────────────
+let saveTimer = null;
+async function save() {
+  saveLocal(state); // save locally immediately
+  setSyncStatus('syncing');
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(async () => {
+    try {
+      const res = await fetch(BIN_URL, {
+        method: 'PUT',
+        headers: HEADERS,
+        body: JSON.stringify(state)
+      });
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      setSyncStatus('synced');
+    } catch(e) {
+      console.warn('[LangTracker] bin save failed:', e.message);
+      setSyncStatus('error');
+    }
+  }, 600); // debounce 600ms to avoid rapid successive calls
+}
+
+// ── RUNTIME STATE ────────────────────────────────────────
+let state = mergeState(loadLocal()); // start with local cache instantly
 let activeTab = 'de';
 let calLang = 'de';
 const calMonth = {};
@@ -509,10 +581,6 @@ function doneToday(lid) {
   const k = todayKey();
   return SKILLS.filter(s => state.checkins[lid][s.id][k]).length;
 }
-
-function save() { localStorage.setItem(KEY, JSON.stringify(state)); }
-
-// ── SWITCH TAB ──────────────────────────────────────────
 function switchTab(id) {
   activeTab = id;
   ['de','en','cal'].forEach(t => {
@@ -808,8 +876,14 @@ applyTheme();
 
 // ── INIT ────────────────────────────────────────────────
 buildPanels();
-applyTheme(); // re-apply after buildPanels to ensure icon is set
-renderAll();
+applyTheme();
+renderAll(); // render immediately with local cache
+
+// Then fetch fresh data from JSONBin and re-render
+loadFromBin().then(loaded => {
+  state = loaded;
+  renderAll();
+});
 </script>
 </body>
 </html>
