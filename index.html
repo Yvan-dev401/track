@@ -23,6 +23,8 @@
   --de-glow: rgba(82,156,202,0.1);
   --en:      #9c8edb; /* Notion Purple */
   --en-glow: rgba(156,142,219,0.1);
+  --zh:      #e16259; /* Notion Red */
+  --zh-glow: rgba(225,98,89,0.1);
 
   --ecoute:  #4dbab4; /* Notion Teal */
   --oral:    #d97757; /* Notion Orange */
@@ -143,9 +145,18 @@ body {
   background: var(--en-glow);
   color: var(--en);
 }
+.tab-btn.active-zh {
+  background: var(--zh-glow);
+  color: var(--zh);
+}
 .tab-btn.active-cal {
   background: rgba(125,197,112,0.08);
   color: var(--done);
+}
+
+/* Narrow widgets: calendar tab shows its icon only so 3 languages fit */
+@media (max-width: 460px) {
+  .tab-cal-lbl { display: none; }
 }
 
 .tab-pip {
@@ -159,6 +170,7 @@ body {
 }
 .tab-btn.active-de .tab-pip { background: rgba(82,156,202,0.15); color: var(--de); }
 .tab-btn.active-en .tab-pip { background: rgba(156,142,219,0.15); color: var(--en); }
+.tab-btn.active-zh .tab-pip { background: rgba(225,98,89,0.15); color: var(--zh); }
 
 /* ── PANELS ── */
 .panel { display: none; flex-direction: column; gap: 7px; flex: 1; min-height: 0; }
@@ -325,6 +337,7 @@ body {
 .cal-lang-btn svg { width: 14px; height: 14px; }
 .cal-lang-btn.active-de { background: var(--de-glow); color: var(--de); border-color: rgba(82,156,202,0.2); }
 .cal-lang-btn.active-en { background: var(--en-glow); color: var(--en); border-color: rgba(156,142,219,0.2); }
+.cal-lang-btn.active-zh { background: var(--zh-glow); color: var(--zh); border-color: rgba(225,98,89,0.2); }
 
 .cal-nav-row {
   display: flex; align-items: center; justify-content: space-between;
@@ -425,7 +438,10 @@ body {
   <button class="tab-btn" id="tab-en" onclick="switchTab('en')">
     🇬🇧 EN <span class="tab-pip" id="pip-en">0/4</span>
   </button>
-  <button class="tab-btn" id="tab-cal" onclick="switchTab('cal')">
+  <button class="tab-btn" id="tab-zh" onclick="switchTab('zh')">
+    🇨🇳 ZH <span class="tab-pip" id="pip-zh">0/4</span>
+  </button>
+  <button class="tab-btn" id="tab-cal" onclick="switchTab('cal')" title="Calendrier">
     📅 Calendrier
   </button>
   <button class="theme-toggle" id="themeToggle" onclick="toggleTheme()" title="Changer de thème">
@@ -443,6 +459,7 @@ body {
 const ICONS = {
   globeDE: `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></svg>`,
   globeEN: `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></svg>`,
+  globeZH: `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></svg>`,
   headphones: `<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 18v-6a9 9 0 0 1 18 0v6"></path><path d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3zM3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z"></path></svg>`,
   mic: `<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path><path d="M19 10v2a7 7 0 0 1-14 0v-2"></path><line x1="12" y1="19" x2="12" y2="23"></line><line x1="8" y1="23" x2="16" y2="23"></line></svg>`,
   pen: `<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>`,
@@ -453,7 +470,8 @@ const ICONS = {
 // ── CONFIG ──────────────────────────────────────────────
 const LANGS = [
   { id:'de', flag: ICONS.globeDE, name:'Allemand', sub:'Deutsch · B1 Target', color:'#529cca' },
-  { id:'en', flag: ICONS.globeEN, name:'Anglais',  sub:'English · Maintien',  color:'#9c8edb' }
+  { id:'en', flag: ICONS.globeEN, name:'Anglais',  sub:'English · Maintien',  color:'#9c8edb' },
+  { id:'zh', flag: ICONS.globeZH, name:'Chinois',  sub:'中文 · Mandarin',     color:'#e16259' }
 ];
 
 const SKILLS = [
@@ -583,7 +601,7 @@ function doneToday(lid) {
 }
 function switchTab(id) {
   activeTab = id;
-  ['de','en','cal'].forEach(t => {
+  [...LANGS.map(l => l.id), 'cal'].forEach(t => {
     const tab = document.getElementById(`tab-${t}`);
     const panel = document.getElementById(`panel-${t}`);
     const isActive = t === id;
@@ -701,7 +719,8 @@ function buildPanels() {
   // Update Main Tabs with SVGs
   document.getElementById('tab-de').innerHTML = `${ICONS.globeDE} DE <span class="tab-pip" id="pip-de">0/4</span>`;
   document.getElementById('tab-en').innerHTML = `${ICONS.globeEN} EN <span class="tab-pip" id="pip-en">0/4</span>`;
-  document.getElementById('tab-cal').innerHTML = `${ICONS.calendar} Calendrier`;
+  document.getElementById('tab-zh').innerHTML = `${ICONS.globeZH} ZH <span class="tab-pip" id="pip-zh">0/4</span>`;
+  document.getElementById('tab-cal').innerHTML = `${ICONS.calendar} <span class="tab-cal-lbl">Calendrier</span>`;
 }
 
 // ── RENDER ALL ──────────────────────────────────────────
